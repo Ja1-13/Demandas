@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+build/
+coverage/
+.env*
+!.env.example
+/data
+/data/uploads/
+*.db
+*.db-journal
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*

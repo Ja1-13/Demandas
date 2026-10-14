@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Perfil {
+  SUPORTE
+  DEV
+  ADM
+}
+
+enum Prioridade {
+  Alta
+  Média
+  Baixa
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  name         String
+  passwordHash String
+  perfil       Perfil
+  createdAt    DateTime @default(now())
+  demands      Demand[] @relation("DemandCreatedBy")
+  assignedDemands Demand[] @relation("DemandAssignee")
+  comments     DemandComment[]
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  nome      String   @unique
+  contato   String?
+  createdAt DateTime @default(now())
+  demands   Demand[]
+}
+
+model Demand {
+  id          String      @id @default(uuid())
+  numero      Int         @unique @default(0)
+  descricao   String
+  prioridade  Prioridade
+  tipo        String
+  sistema     String
+  status      String      @default("Pendente")
+  clienteId   String
+  cliente     Client      @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  criadaPorId String
+  criadaPor   User        @relation("DemandCreatedBy", fields: [criadaPorId], references: [id], onDelete: Restrict)
+  responsavelId String?
+  responsavel User?       @relation("DemandAssignee", fields: [responsavelId], references: [id], onDelete: SetNull)
+  criadaEm    DateTime    @default(now())
+  atualizadaEm DateTime   @updatedAt
+  anexos      Attachment[]
+  comentarios DemandComment[]
+}
+
+model DemandCounter {
+  id          Int @id @default(1)
+  nextNumber  Int @default(1)
+}
+
+model DemandComment {
+  id        String   @id @default(uuid())
+  demandId  String
+  demanda   Demand   @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  authorId  String
+  autor     User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  conteudo  String
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id          String   @id @default(uuid())
+  demandId    String
+  demand      Demand   @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  nomeArquivo String
+  caminho     String
+
+  @@unique([demandId, nomeArquivo])
+}
